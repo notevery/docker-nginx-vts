@@ -3,7 +3,8 @@ FROM nginx:1.22.1
 ENV NGINX_VERSION     "1.22.1"
 ENV NGINX_VTS_VERSION "0.2.2"
 
-RUN apt-get update && apt-get install -y gnupg2 && curl http://nginx.org/packages/keys/nginx_signing.key | apt-key add -
+RUN sed -i 's@deb.debian.org@repo.huaweicloud.com@g' /etc/apt/sources.list \
+   && apt-get update && apt-get install -y gnupg2 && curl http://nginx.org/packages/keys/nginx_signing.key | apt-key add -
 
 RUN echo "deb-src http://nginx.org/packages/debian/ bullseye nginx" >> /etc/apt/sources.list \
   && apt-get update \
@@ -24,5 +25,9 @@ RUN cd /opt \
   && cd /opt/rebuildnginx \
   && dpkg --install nginx_${NGINX_VERSION}-1~bullseye_amd64.deb \
   && apt-get remove --purge -y dpkg-dev curl && apt-get -y --purge autoremove && rm -rf /var/lib/apt/lists/*
+
+
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 CMD ["nginx", "-g", "daemon off;"]
